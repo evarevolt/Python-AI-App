@@ -184,6 +184,68 @@ class AppStyles:
         "border": ft.border.all(1, ft.Colors.GREY_700),  # Тонкая серая граница
     }
 
+    # Настройки окна аутентификации
+    AUTH_WINDOW = {
+        "width": 300,  # Ширина
+        "height": 250,  # Высота
+    }
+
+    # Настройки поля ввода API ключа
+    API_KEY_FIELD = {
+        "width": 360,  # Ширина поля ввода
+        "border_radius": 8,  # Радиус скругления углов
+        "bgcolor": ft.Colors.GREY_100,  # Цвет фона поля
+        "border_color": ft.Colors.GREY_900,  # Цвет границы в обычном состоянии
+        "color": ft.Colors.BLACK,  # Цвет текста
+        "content_padding": 10,  # Внутренние отступы
+        "cursor_color": ft.Colors.BLACK,  # Цвет курсора
+        "focused_border_color": ft.Colors.BLUE_700,  # Цвет границы при фокусе
+        "focused_bgcolor": ft.Colors.GREY_300,  # Цвет фона при фокусе
+        "hint_style": ft.TextStyle(color=ft.Colors.BLACK, size=14),  # Стиль текста-подсказки
+        "prefix_icon": ft.icons.KEY,  # Иконка слева от поля
+        "height": 45,  # Высота поля
+    }
+
+    # Настройки поля ввода PIN
+    PIN_FIELD = {
+        "width": 360,  # Ширина поля ввода
+        "border_radius": 8,  # Радиус скругления углов
+        "bgcolor": ft.Colors.GREY_100,  # Цвет фона поля
+        "border_color": ft.Colors.GREY_900,  # Цвет границы в обычном состоянии
+        "color": ft.Colors.BLACK,  # Цвет текста
+        "content_padding": 10,  # Внутренние отступы
+        "cursor_color": ft.Colors.BLACK,  # Цвет курсора
+        "focused_border_color": ft.Colors.BLUE_700,  # Цвет границы при фокусе
+        "focused_bgcolor": ft.Colors.GREY_300,  # Цвет фона при фокусе
+        "hint_style": ft.TextStyle(color=ft.Colors.BLACK, size=14),  # Стиль текста-подсказки
+        "prefix_icon": ft.icons.PIN,  # Иконка слева от поля
+        "height": 45,  # Высота поля
+    }
+
+    # Настройки кнопки входа
+    SUBMIT_BUTTON = {
+        "style": ft.ButtonStyle(  # Стиль оформления кнопки
+            color=ft.Colors.WHITE,  # Цвет текста кнопки
+            bgcolor=ft.Colors.BLUE_700,  # Цвет фона кнопки
+            padding=10,  # Внутренние отступы
+        ),
+        "height": 50,  # Высота кнопки
+        "width": 150,  # Ширина кнопки
+    }
+
+    # Настройки кнопки сброса
+    RESET_BUTTON = {
+        "icon": ft.icons.CANCEL,  # Иконка удаления
+        "style": ft.ButtonStyle(  # Стиль оформления кнопки
+            color=ft.Colors.WHITE,  # Цвет текста
+            bgcolor=ft.Colors.RED_700,  # Красный цвет фона для предупреждения
+            padding=10,  # Внутренние отступы
+        ),
+        "width": 150,  # Ширина кнопки
+        "height": 50,  # Высота кнопки
+    }
+
+
     @staticmethod
     def set_window_size(page: ft.Page):
         """

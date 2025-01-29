@@ -30,10 +30,10 @@ class OpenRouterClient:
         """
         # Инициализация логгера для отслеживания работы клиента
         self.logger = AppLogger()
-        
+
         # Получение необходимых параметров из переменных окружения
-        self.api_key = os.getenv("OPENROUTER_API_KEY")  # API ключ для авторизации
-        self.base_url = os.getenv("BASE_URL")          # Базовый URL API
+        self._api_key = os.getenv("OPENROUTER_API_KEY")  # API ключ для авторизации
+        self.base_url = os.getenv("BASE_URL")  # Базовый URL API
         
         # Проверка наличия API ключа
         if not self.api_key:
@@ -44,7 +44,7 @@ class OpenRouterClient:
 
         # Настройка заголовков для всех API запросов
         self.headers = {
-            "Authorization": f"Bearer {self.api_key}",  # Токен для авторизации запросов
+            "Authorization": f"Bearer {self._api_key}",  # Токен для авторизации запросов
             "Content-Type": "application/json"          # Указание формата данных
         }
 
@@ -53,6 +53,18 @@ class OpenRouterClient:
         
         # Загрузка списка доступных моделей при инициализации
         self.available_models = self.get_models()
+
+    @property
+    def api_key(self):
+        return self._api_key
+
+    @api_key.setter
+    def api_key(self, value: str):
+        self._api_key = value
+        self.headers = {
+            "Authorization": f"Bearer {self._api_key}",
+            "Content-Type": "application/json"
+        }
 
     def get_models(self):
         """
@@ -78,7 +90,7 @@ class OpenRouterClient:
             models_data = response.json()
             
             # Логирование успешного получения списка моделей
-            self.logger.info(f"Retrieved {len(models_data["data"])} models")
+            self.logger.info(f"Retrieved {len(models_data['data'])} models")
             
             # Преобразование данных в нужный формат
             return [

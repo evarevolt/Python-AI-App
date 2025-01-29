@@ -1,7 +1,9 @@
 # Импорт необходимых библиотек и модулей
+import random
 import flet as ft                  # Фреймворк для создания пользовательского интерфейса
 from ui.styles import AppStyles    # Импорт стилей приложения
 import asyncio                     # Библиотека для асинхронного программирования
+
 
 class MessageBubble(ft.Container):
     """
@@ -128,3 +130,131 @@ class ModelSelector(ft.Dropdown):
         
         # Обновление интерфейса для отображения отфильтрованного списка
         e.page.update()
+
+
+class AuthDialog(ft.AlertDialog):
+    def __init__(self, cache, api_client, on_success):
+        super().__init__()
+        self.cache = cache
+        self.api_client = api_client
+        self.on_success = on_success
+        api_key = self.cache.get_auth_data()
+        self.modal = True
+
+        self.pin_field = ft.TextField(
+            password=True,
+            can_reveal_password=True,
+            hint_text="Введите PIN",
+            visible=api_key is not None,
+            max_length=4,
+            keyboard_type=ft.KeyboardType.NUMBER,
+            on_change=self.validate_pin_input,
+            **AppStyles.PIN_FIELD
+        )
+        self.api_key_field = ft.TextField(
+            password=True,
+            can_reveal_password=True,
+            hint_text="Введите API-ключ",
+            visible=api_key is None,
+            on_change=self.on_change_input,
+            **AppStyles.API_KEY_FIELD)
+        self.error_text = ft.Text("", color=ft.Colors.RED_400, weight=ft.FontWeight.BOLD)
+        self.info_text = ft.Text("", color=ft.Colors.GREEN_300, weight=ft.FontWeight.BOLD)
+
+        self.content = ft.Column([
+            self.error_text,
+            self.api_key_field,
+            self.pin_field,
+            self.info_text,
+        ],
+        **AppStyles.AUTH_WINDOW)
+
+        submit_text = "Войти" if api_key is not None else "Валидация ключа"
+        self.submit_button = ft.TextButton(
+            submit_text,
+            on_click=self.validate,
+            icon=ft.icons.LOCK if api_key is None else ft.icons.LOGIN,
+            **AppStyles.SUBMIT_BUTTON)
+
+        self.reset_key_button = ft.TextButton(
+            "Сбросить ключ",
+            on_click=self.reset_key,
+            visible=api_key is not None,
+            **AppStyles.RESET_BUTTON,)
+
+        self.actions = [
+            ft.Row(
+                controls=[
+                    self.submit_button,
+                    self.reset_key_button
+                ],
+                alignment=ft.MainAxisAlignment.CENTER,  # Выравнивание по центру
+                spacing=10  # Отступ между кнопками
+            )
+        ]
+
+    def validate_pin_input(self, e):
+        """Оставляет только цифры в pin_field"""
+        self.pin_field.value = ''.join(filter(str.isdigit, self.pin_field.value))
+        self.error_text.value = ""
+        self.update()
+
+    def on_change_input(self, e):
+        """Оставляет только цифры в pin_field"""
+        self.error_text.value = ""
+        self.update()
+
+    def validate(self, e):
+        """Проверка PIN или API-ключа"""
+        auth_data = self.cache.get_auth_data()
+        if auth_data:
+            if self.pin_field.value == auth_data["pin"]:
+                self.open = False
+                self.update()
+                self.on_success()
+            else:
+                self.error_text.value = "Неверный PIN!"
+        else:
+            self.check_api_key()
+
+        self.update()
+
+    def check_api_key(self):
+        """Проверка API-ключа и генерация PIN"""
+        api_key = self.api_key_field.value.strip()
+        self.api_client.api_key = api_key  # Временное использование ключа
+        balance = self.api_client.get_balance()
+
+        if balance != "Ошибка" and float(balance.strip('$')) >= 0:
+            pin = ''.join(random.choices('0123456789', k=4))
+            self.cache.save_auth_data(api_key, pin)
+            self.info_text.value = f"Ваш PIN: {pin}"
+            self.error_text.value = ""
+
+            self.pin_field.value = pin
+            self.submit_button.text = "OK"
+            self.submit_button.icon = ft.icons.CHECK
+            self.reset_key_button.visible = False
+            self.api_key_field.visible = False
+            self.api_key_field.clean()
+            self.pin_field.visible = False
+        else:
+            self.error_text.value = "Неверный API-ключ!"
+
+        self.update()
+
+    def reset_key(self, e):
+        """Сброс API-ключа"""
+        self.api_key_field.value = ""
+        self.pin_field.value = ""
+        self.cache.clear_auth_data()
+        self.error_text.value = "Введите новый API-ключ"
+
+        self.submit_button.icon = ft.icons.LOCK
+        self.api_key_field.visible = True
+        self.pin_field.visible = False
+        self.submit_button.text = "Валидация ключа"
+        self.reset_key_button.visible = False
+        self.info_text.value = ""
+
+        self.update()

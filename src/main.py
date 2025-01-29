@@ -2,7 +2,7 @@
 import flet as ft                                  # Фреймворк для создания кроссплатформенных приложений с современным UI
 from api.openrouter import OpenRouterClient        # Клиент для взаимодействия с AI API через OpenRouter
 from ui.styles import AppStyles                    # Модуль с настройками стилей интерфейса
-from ui.components import MessageBubble, ModelSelector  # Компоненты пользовательского интерфейса
+from ui.components import MessageBubble, ModelSelector, AuthDialog  # Компоненты пользовательского интерфейса
 from utils.cache import ChatCache                  # Модуль для кэширования истории чата
 from utils.logger import AppLogger                 # Модуль для логирования работы приложения
 from utils.analytics import Analytics              # Модуль для сбора и анализа статистики использования
@@ -44,7 +44,6 @@ class ChatApp:
         # Создание директории для экспорта истории чата
         self.exports_dir = "exports"               # Путь к директории экспорта
         os.makedirs(self.exports_dir, exist_ok=True)  # Создание директории, если её нет
-        
     def load_chat_history(self):
         """
         Загрузка истории чата из кэша и отображение её в интерфейсе.
@@ -85,8 +84,20 @@ class ChatApp:
             self.balance_text.value = "Баланс: н/д"         # Установка текста ошибки
             self.balance_text.color = ft.Colors.RED_400     # Установка красного цвета для ошибки
             self.logger.error(f"Ошибка обновления баланса: {e}")
-            
+
     def main(self, page: ft.Page):
+        """Точка входа в приложение"""
+
+        def start_main_app():
+            """Запускает основной UI после успешной аутентификации"""
+            page.clean()  # Очищаем страницу перед запуском главного UI
+            self.show_main_page(page)  # Запускаем основное приложение
+
+        auth_dialog = AuthDialog(self.cache, self.api_client, start_main_app)
+        auth_dialog.open = True
+        page.add(auth_dialog)
+
+    def show_main_page(self, page: ft.Page):
         """
         Основная функция инициализации интерфейса приложения.
         Создает все элементы UI и настраивает их взаимодействие.
@@ -430,7 +441,6 @@ class ChatApp:
         
         # Логирование запуска
         self.logger.info("Приложение запущено")
-
 def main():
     """Точка входа в приложение"""
     app = ChatApp()                              # Создание экземпляра приложения
